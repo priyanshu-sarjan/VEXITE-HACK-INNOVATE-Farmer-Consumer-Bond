@@ -33,9 +33,12 @@ import DisputeArbiterCard from '@/components/ai/DisputeArbiterCard';
 import FarmerVoiceAssistantWidget from '@/components/ai/FarmerVoiceAssistantWidget';
 import AdminControlPanel from '@/components/admin/AdminControlPanel';
 import RealWorldTransitMap from '@/components/maps/RealWorldTransitMap';
-import AuthModal from '@/components/auth/AuthModal';
+import RoleAuthModal from '@/components/auth/RoleAuthModal';
 import MandiSelectorDrawer from '@/components/ui/MandiSelectorDrawer';
 import mandiData from '@/data/mandiWarehouses.json';
+import FarmerPortal from '@/components/dashboard/FarmerPortal';
+import MarketplaceView from '@/components/dashboard/MarketplaceView';
+import LiveTelemetryStream from '@/components/iot/LiveTelemetryStream';
 
 // Dynamically import Three.js 3D Canvas with ssr: false to prevent SSR hydration mismatch
 const ColdHubCanvas = dynamic(() => import('@/components/canvas/ColdHubCanvas'), {
@@ -212,6 +215,29 @@ export default function Home() {
           onSelectMandi={setSelectedMandi}
         />
 
+        {/* ---------------- FARMER PORTAL & HARVEST LISTER (FARMER ROLE) ---------------- */}
+        {userProfile.role === 'FARMER' && (
+          <FarmerPortal 
+            userProfile={userProfile}
+            onLockEscrow={() => {
+              const el = document.getElementById('smart-escrow');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+          />
+        )}
+
+        {/* ---------------- DIRECT B2B / B2C MARKETPLACE ---------------- */}
+        <MarketplaceView 
+          userProfile={userProfile}
+          onLockEscrow={() => {
+            const el = document.getElementById('smart-escrow');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+        />
+
+        {/* ---------------- REAL-TIME SUPABASE IOT TELEMETRY STREAM ---------------- */}
+        <LiveTelemetryStream />
+
         {/* ---------------- IOT TELEMETRY OVERLAY ---------------- */}
         <TelemetryOverlay 
           activeNodeId={activeNodeId}
@@ -238,88 +264,13 @@ export default function Home() {
           onConnectWallet={handleConnectWallet}
         />
 
-        {/* ---------------- DIRECT B2B MARKET LISTINGS ---------------- */}
-        <section className="py-12 px-4 md:px-8 max-w-7xl mx-auto space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="text-emerald-400 font-mono text-xs uppercase tracking-widest">
-                Direct Farmer-to-Consumer / B2B Bond Market
-              </span>
-              <h2 className="text-2xl font-extrabold text-white">
-                Verified Cold-Hub Produce Listings
-              </h2>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                title: 'Nashik Thompson Seedless Grapes',
-                fpo: 'Nashik Farmer Producer Co.',
-                hub: 'Nashik Solar Hub A1',
-                price: '₹78 / kg',
-                qty: '8.5 MT Available',
-                freshness: '97.4% Grade A+',
-              },
-              {
-                title: 'Ratnagiri GI Alphonso Mangoes',
-                fpo: 'Konkan Fruit Growers Society',
-                hub: 'Reefer Transit MH-15-EV',
-                price: '₹140 / kg',
-                qty: '12.0 MT Available',
-                freshness: '94.8% Grade A+',
-              },
-              {
-                title: 'Nagpur Organic Kinnow Oranges',
-                fpo: 'Vidarbha Agri Collective',
-                hub: 'Azadpur Smart Cold Depot',
-                price: '₹52 / kg',
-                qty: '22.4 MT Available',
-                freshness: '98.9% Grade A+',
-              },
-            ].map((item, idx) => (
-              <div key={idx} className="glass-card rounded-3xl p-5 border border-white/10 space-y-4 hover:border-emerald-500/30 transition-all">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
-                    {item.freshness}
-                  </span>
-                  <span className="text-xs font-mono font-bold text-white">{item.price}</span>
-                </div>
-
-                <div>
-                  <h3 className="font-bold text-base text-white">{item.title}</h3>
-                  <p className="text-xs text-slate-400">{item.fpo}</p>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-slate-950/70 text-xs font-mono text-slate-300 space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Cold Hub:</span>
-                    <span className="text-white">{item.hub}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Stock:</span>
-                    <span className="text-emerald-400">{item.qty}</span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleConnectWallet}
-                  className="w-full py-2.5 rounded-2xl bg-slate-800 text-emerald-300 font-bold text-xs hover:bg-emerald-500 hover:text-slate-950 transition-all flex items-center justify-center gap-2"
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  <span>Reserve Batch via Smart Escrow</span>
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-
       </main>
 
       {/* Auth Identity Modal */}
-      <AuthModal 
+      <RoleAuthModal 
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
+        userProfile={userProfile}
         onAuthenticate={(profile) => setUserProfile(profile)}
       />
 
