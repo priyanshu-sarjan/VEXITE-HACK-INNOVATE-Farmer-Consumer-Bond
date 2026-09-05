@@ -58,7 +58,7 @@ export default function FarmerVoiceAssistantWidget({ onOpenGrader, onOpenNegotia
 
   // Browser Text-to-Speech Readout for Voice Accessibility
   const handleSpeak = (text) => {
-    if ('speechSynthesis' in window) {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       if (isSpeaking) {
         window.speechSynthesis.cancel();
         setIsSpeaking(false);

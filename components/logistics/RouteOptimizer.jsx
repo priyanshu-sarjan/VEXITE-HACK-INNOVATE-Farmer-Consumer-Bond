@@ -34,6 +34,11 @@ const FRESHNESS_DECAY_DATA = [
 
 export default function RouteOptimizer() {
   const [activeRouteMode, setActiveRouteMode] = useState('ai-bypass');
+  const [mounted, setMounted] = useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <section id="route-ai" className="py-12 px-4 md:px-8 max-w-7xl mx-auto space-y-8">
@@ -154,45 +159,51 @@ export default function RouteOptimizer() {
 
             {/* Recharts Area Graph */}
             <div className="w-full h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={FRESHNESS_DECAY_DATA}>
-                  <defs>
-                    <linearGradient id="aiGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.0}/>
-                    </linearGradient>
-                    <linearGradient id="standardGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2d35" />
-                  <XAxis dataKey="hour" stroke="#94a3b8" fontSize={10} />
-                  <YAxis domain={[50, 100]} stroke="#94a3b8" fontSize={10} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#121316', borderColor: '#2a2d35', borderRadius: '12px', fontSize: '12px' }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="aiRoute" 
-                    name="AI Heat-Bypass Route (%)" 
-                    stroke="#10b981" 
-                    strokeWidth={3} 
-                    fillOpacity={1} 
-                    fill="url(#aiGradient)" 
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="standardRoute" 
-                    name="Standard Highway Route (%)" 
-                    stroke="#f59e0b" 
-                    strokeWidth={2} 
-                    strokeDasharray="4 4" 
-                    fillOpacity={1} 
-                    fill="url(#standardGradient)" 
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              {mounted ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={FRESHNESS_DECAY_DATA}>
+                    <defs>
+                      <linearGradient id="aiGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0.0}/>
+                      </linearGradient>
+                      <linearGradient id="standardGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#2a2d35" />
+                    <XAxis dataKey="hour" stroke="#94a3b8" fontSize={10} />
+                    <YAxis domain={[50, 100]} stroke="#94a3b8" fontSize={10} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#121316', borderColor: '#2a2d35', borderRadius: '12px', fontSize: '12px' }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="aiRoute" 
+                      name="AI Heat-Bypass Route (%)" 
+                      stroke="#10b981" 
+                      strokeWidth={3} 
+                      fillOpacity={1} 
+                      fill="url(#aiGradient)" 
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="standardRoute" 
+                      name="Standard Highway Route (%)" 
+                      stroke="#f59e0b" 
+                      strokeWidth={2} 
+                      strokeDasharray="4 4" 
+                      fillOpacity={1} 
+                      fill="url(#standardGradient)" 
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-xs font-mono text-slate-500">
+                  Loading Freshness Decay Curve...
+                </div>
+              )}
             </div>
           </div>
         </div>
