@@ -59,20 +59,20 @@ export default function InteractiveConfigurator({
 
   return (
     <>
-      {/* Floating Bottom Action Dock - Framed Cleanly */}
+      {/* Floating Bottom Action Dock - Viewport Constrained & Zero Clipping */}
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-full max-w-5xl px-4 pointer-events-none"
+        className="fixed bottom-6 inset-x-4 max-w-[calc(100vw-2rem)] md:max-w-4xl lg:max-w-5xl mx-auto z-40 pointer-events-none box-border"
       >
-        <div className="pointer-events-auto flex flex-wrap items-center justify-between gap-2.5 p-2.5 md:p-3 rounded-full glass-panel border border-white/10 shadow-2xl backdrop-blur-2xl bg-slate-900/90">
-          {/* Quick Model Selector Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        <div className="pointer-events-auto flex items-center justify-between gap-3 px-4 md:px-5 py-2.5 rounded-full glass-panel border border-white/10 shadow-2xl backdrop-blur-2xl bg-slate-900/90 box-border w-full">
+          {/* Quick Model Selector Pills (Horizontally scrollable if space tight) */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar flex-1 min-w-0 pr-2">
             {models.map((m) => (
               <button
                 key={m.id}
                 onClick={() => onSelectModel(m.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
                   activeModel === m.id
                     ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md border border-emerald-300 font-extrabold'
                     : 'bg-slate-800/60 text-slate-300 hover:bg-slate-700/60 border border-white/5'
@@ -84,8 +84,8 @@ export default function InteractiveConfigurator({
             ))}
           </div>
 
-          {/* Drawer Toggle & Framed Web3 Buy Direct CTA */}
-          <div className="flex items-center gap-2">
+          {/* Drawer Toggle & Framed Web3 Buy Direct CTA (Un-shrinkable & Fully Framed) */}
+          <div className="flex items-center gap-2 flex-shrink-0 shrink-0">
             <button
               onClick={() => setDrawerOpen(!drawerOpen)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-800/80 text-slate-200 hover:bg-slate-700/80 border border-white/10 transition-all whitespace-nowrap"
@@ -95,7 +95,7 @@ export default function InteractiveConfigurator({
             </button>
 
             {/* Wallet Button Framed Cleanly Inside Dock */}
-            <div className="p-0.5 rounded-full bg-gradient-to-r from-emerald-500/30 to-teal-500/30 border border-emerald-500/40">
+            <div className="p-0.5 rounded-full bg-gradient-to-r from-emerald-500/30 to-teal-500/30 border border-emerald-500/40 flex-shrink-0 shrink-0">
               <button
                 onClick={onConnectWallet}
                 className="flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-extrabold bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 text-slate-950 hover:brightness-110 shadow-md transition-all whitespace-nowrap"
