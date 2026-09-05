@@ -9,11 +9,20 @@ import {
   Wallet, 
   Activity, 
   Sparkles,
-  Navigation
+  Navigation,
+  User,
+  ChevronDown
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function Navbar({ walletConnected, onConnectWallet, activeTab, setActiveTab }) {
+export default function Navbar({ 
+  walletConnected, 
+  onConnectWallet, 
+  activeTab, 
+  setActiveTab,
+  userProfile,
+  onOpenAuth
+}) {
   const [isHovered, setIsHovered] = useState(null);
 
   const navLinks = [
@@ -24,6 +33,14 @@ export default function Navbar({ walletConnected, onConnectWallet, activeTab, se
     { id: 'mcp-agent', label: 'Autonomous MCP', icon: Cpu },
     { id: 'smart-escrow', label: 'Web3 Escrow', icon: ShieldCheck },
   ];
+
+  const getRoleBadge = (role) => {
+    if (role === 'FARMER') return { label: '🌾 Farmer', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' };
+    if (role === 'TRADER') return { label: '🏭 Trader', color: 'bg-teal-500/20 text-teal-300 border-teal-500/30' };
+    return { label: '🛍️ Consumer', color: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30' };
+  };
+
+  const badge = getRoleBadge(userProfile?.role);
 
   return (
     <header className="fixed top-4 left-0 right-0 z-50 px-4 md:px-6 max-w-7xl mx-auto pointer-events-none">
@@ -85,16 +102,21 @@ export default function Navbar({ walletConnected, onConnectWallet, activeTab, se
           })}
         </nav>
 
-        {/* Right Section: IoT Status & Framed Web3 Wallet Button */}
+        {/* Right Section: User Profile & Framed Web3 Wallet Button */}
         <div className="flex items-center gap-2 pr-1">
-          {/* Live ESP32 Status Tag */}
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/10 text-xs font-mono bg-slate-950/60">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          {/* User Auth Profile Badge */}
+          <button
+            onClick={onOpenAuth}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/10 text-xs font-mono bg-slate-950/80 hover:border-emerald-500/40 transition-all"
+          >
+            <User className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="text-white font-bold text-[11px] truncate max-w-[90px] hidden sm:inline">
+              {userProfile?.name?.split(' ')[0] || 'Sign In'}
             </span>
-            <span className="text-slate-300 font-semibold text-[10px]">IoT Active</span>
-          </div>
+            <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold border ${badge.color}`}>
+              {badge.label}
+            </span>
+          </button>
 
           {/* Web3 Wallet Button Framed inside Header */}
           <div className="p-0.5 rounded-full bg-gradient-to-r from-emerald-500/30 to-teal-500/30 border border-emerald-500/40">
@@ -108,7 +130,7 @@ export default function Navbar({ walletConnected, onConnectWallet, activeTab, se
             >
               <Wallet className="w-3.5 h-3.5 flex-shrink-0" />
               <span className="font-mono text-xs whitespace-nowrap">
-                {walletConnected ? '0x8F92...C42A (Verified)' : 'Connect Wallet'}
+                {walletConnected ? '0x8F92... (Verified)' : 'Connect Wallet'}
               </span>
             </button>
           </div>

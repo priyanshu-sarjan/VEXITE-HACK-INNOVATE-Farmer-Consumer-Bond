@@ -16,7 +16,8 @@ import {
   CheckCircle2,
   Camera,
   Mic,
-  Scale
+  Scale,
+  UserCheck
 } from 'lucide-react';
 
 import Navbar from '@/components/navbar/Navbar';
@@ -32,6 +33,7 @@ import DisputeArbiterCard from '@/components/ai/DisputeArbiterCard';
 import FarmerVoiceAssistantWidget from '@/components/ai/FarmerVoiceAssistantWidget';
 import AdminControlPanel from '@/components/admin/AdminControlPanel';
 import RealWorldTransitMap from '@/components/maps/RealWorldTransitMap';
+import AuthModal from '@/components/auth/AuthModal';
 
 // Dynamically import Three.js 3D Canvas with ssr: false to prevent SSR hydration mismatch
 const ColdHubCanvas = dynamic(() => import('@/components/canvas/ColdHubCanvas'), {
@@ -51,6 +53,15 @@ export default function Home() {
   const [capacityLoad, setCapacityLoad] = useState(65);
   const [selectedHotspot, setSelectedHotspot] = useState(null);
   const [activeNodeId, setActiveNodeId] = useState('NODE-01');
+
+  // Role-Based Auth User State
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState({
+    name: 'Ramesh Patil',
+    role: 'FARMER',
+    location: 'Nashik, MH',
+    businessName: 'Nashik Grape Producers Co-op',
+  });
 
   // Admin Control Settings State
   const [chamberTemp, setChamberTemp] = useState(3.8);
@@ -75,6 +86,8 @@ export default function Home() {
         onConnectWallet={handleConnectWallet}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        userProfile={userProfile}
+        onOpenAuth={() => setIsAuthOpen(true)}
       />
 
       {/* Admin Supply Chain Control Dashboard Drawer */}
@@ -103,8 +116,8 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               className="inline-flex items-center gap-2 glass-pill px-4 py-1.5 rounded-full text-xs font-mono text-emerald-400 border border-emerald-500/30"
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>SIH 2026 Problem ID: SIH26033 • Best Use of Google Gemini API</span>
+              <UserCheck className="w-3.5 h-3.5" />
+              <span>Logged in as: <strong className="text-white">{userProfile.name}</strong> ({userProfile.role}) • {userProfile.location}</span>
             </motion.div>
 
             <motion.h1 
@@ -122,7 +135,9 @@ export default function Home() {
               transition={{ delay: 0.2 }}
               className="text-sm md:text-base text-slate-400 font-medium"
             >
-              Powered by Google Gemini 2.5 Flash Multimodal Vision, Multilingual Voice Trade Contracts, Multi-Party Stakeholder Dispute Arbitration, and Admin Supply Chain Controls.
+              {userProfile.role === 'FARMER' && "Farmer Portal: Camera Produce Grading, Voice Trade Negotiator, Solar Micro-Cold Storage & Escrow Advances."}
+              {userProfile.role === 'TRADER' && "Trader Portal: Direct B2B Bulk Purchasing, Real-World Transit Tracking & Multi-Party Quality Audits."}
+              {userProfile.role === 'CONSUMER' && "Consumer Portal: Farm-to-Fork Traceability, Certified Freshness Index & Direct Farm Orders."}
             </motion.p>
 
             {/* Quick Action Badges for Gemini Features */}
@@ -141,6 +156,14 @@ export default function Home() {
               >
                 <Mic className="w-4 h-4 text-teal-400" />
                 <span>🎙️ Multilingual Voice Trade Negotiator</span>
+              </button>
+
+              <button
+                onClick={() => setIsAuthOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 transition-all shadow-lg"
+              >
+                <UserCheck className="w-4 h-4 text-cyan-400" />
+                <span>Switch Access Role ({userProfile.role})</span>
               </button>
             </div>
           </div>
@@ -277,6 +300,13 @@ export default function Home() {
         </section>
 
       </main>
+
+      {/* Auth Identity Modal */}
+      <AuthModal 
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onAuthenticate={(profile) => setUserProfile(profile)}
+      />
 
       {/* Floating Farmer Voice & Knowledge Assistant Widget (Bottom-Left Icon) */}
       <FarmerVoiceAssistantWidget 
