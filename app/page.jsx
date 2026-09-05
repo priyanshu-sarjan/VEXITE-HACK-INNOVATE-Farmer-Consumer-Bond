@@ -34,6 +34,8 @@ import FarmerVoiceAssistantWidget from '@/components/ai/FarmerVoiceAssistantWidg
 import AdminControlPanel from '@/components/admin/AdminControlPanel';
 import RealWorldTransitMap from '@/components/maps/RealWorldTransitMap';
 import AuthModal from '@/components/auth/AuthModal';
+import MandiSelectorDrawer from '@/components/ui/MandiSelectorDrawer';
+import mandiData from '@/data/mandiWarehouses.json';
 
 // Dynamically import Three.js 3D Canvas with ssr: false to prevent SSR hydration mismatch
 const ColdHubCanvas = dynamic(() => import('@/components/canvas/ColdHubCanvas'), {
@@ -53,6 +55,9 @@ export default function Home() {
   const [capacityLoad, setCapacityLoad] = useState(65);
   const [selectedHotspot, setSelectedHotspot] = useState(null);
   const [activeNodeId, setActiveNodeId] = useState('NODE-01');
+
+  // Selected Mandi/Warehouse State from 50+ Mandi Dataset
+  const [selectedMandi, setSelectedMandi] = useState(mandiData[0]);
 
   // Role-Based Auth User State
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -107,7 +112,7 @@ export default function Home() {
       {/* Main Content Area */}
       <main className="pt-24 pb-32 space-y-16">
         
-        {/* ---------------- 3D HERO SECTION ---------------- */}
+        {/* ---------------- 3D HERO SECTION & MANDI DIRECTORY ---------------- */}
         <section id="3d-hub" className="px-4 md:px-8 max-w-7xl mx-auto space-y-6">
           {/* Hero Titles */}
           <div className="text-center max-w-3xl mx-auto space-y-3 pt-4">
@@ -168,6 +173,12 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Interactive 50+ Mandi & Warehouse Directory Drawer */}
+          <MandiSelectorDrawer 
+            selectedMandi={selectedMandi}
+            onSelectMandi={setSelectedMandi}
+          />
+
           {/* Interactive 3D Canvas Viewport */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
@@ -178,6 +189,7 @@ export default function Home() {
               activeHotspot={selectedHotspot}
               onSelectHotspot={setSelectedHotspot}
               capacityLoad={capacityLoad}
+              selectedMandi={selectedMandi}
             />
           </motion.div>
         </section>
@@ -195,7 +207,10 @@ export default function Home() {
         />
 
         {/* ---------------- REAL-WORLD GEO-TAGGED MAP & FLEET TRACKER ---------------- */}
-        <RealWorldTransitMap />
+        <RealWorldTransitMap 
+          selectedMandi={selectedMandi}
+          onSelectMandi={setSelectedMandi}
+        />
 
         {/* ---------------- IOT TELEMETRY OVERLAY ---------------- */}
         <TelemetryOverlay 

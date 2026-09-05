@@ -19,7 +19,9 @@ import {
   ShieldCheck, 
   Activity, 
   Zap,
-  Maximize2
+  Maximize2,
+  Building2,
+  MapPin
 } from 'lucide-react';
 
 // Custom Mouse Parallax Camera Controller
@@ -89,7 +91,7 @@ function FanBlades() {
 }
 
 // Procedural Solar Micro-Cold Hub 3D Model
-function SolarColdHubModel({ activeHotspot, onSelectHotspot, capacityLoad }) {
+function SolarColdHubModel({ activeHotspot, onSelectHotspot, capacityLoad, selectedMandi }) {
   const hubRef = useRef();
   const [hovered, setHovered] = useState(false);
 
@@ -299,21 +301,28 @@ function GroundTerrain() {
   );
 }
 
-export default function ColdHubCanvas({ activeHotspot, onSelectHotspot, capacityLoad }) {
+export default function ColdHubCanvas({ activeHotspot, onSelectHotspot, capacityLoad, selectedMandi }) {
   return (
     <div className="relative w-full h-[82vh] rounded-3xl overflow-hidden border border-white/10 glass-panel shadow-2xl">
       {/* Top 3D Viewport Controls & Status Header */}
       <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
-        <div className="flex items-center gap-2 glass-pill px-3 py-1.5 rounded-full text-xs font-mono text-slate-300">
+        <div className="flex items-center gap-2 glass-pill px-3.5 py-1.5 rounded-full text-xs font-mono text-slate-300 bg-slate-950/80 border border-white/10 shadow-lg">
           <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
           <span>Interactive 3D Spatial Viewport</span>
+          {selectedMandi && (
+            <>
+              <span className="text-slate-500">|</span>
+              <Building2 className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="text-emerald-400 font-bold">{selectedMandi.name} ({selectedMandi.district})</span>
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-2 pointer-events-auto">
           {activeHotspot && (
             <button
               onClick={() => onSelectHotspot(null)}
-              className="glass-pill px-3 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white border border-white/10 hover:border-white/20 transition-all"
+              className="glass-pill px-3 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white border border-white/10 hover:border-white/20 transition-all bg-slate-900/90"
             >
               Reset View
             </button>
@@ -344,6 +353,7 @@ export default function ColdHubCanvas({ activeHotspot, onSelectHotspot, capacity
           activeHotspot={activeHotspot} 
           onSelectHotspot={onSelectHotspot} 
           capacityLoad={capacityLoad}
+          selectedMandi={selectedMandi}
         />
 
         {/* Lush Terrain Base */}
@@ -372,7 +382,7 @@ export default function ColdHubCanvas({ activeHotspot, onSelectHotspot, capacity
       </Canvas>
 
       {/* Bottom Hint Indicator */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex items-center gap-2 glass-pill px-4 py-1.5 rounded-full text-[11px] text-slate-400 font-mono">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex items-center gap-2 glass-pill px-4 py-1.5 rounded-full text-[11px] text-slate-400 font-mono bg-slate-950/80 border border-white/10">
         <Maximize2 className="w-3 h-3 text-emerald-400" />
         <span>Click 3D Hotspots or Drag Mouse to Rotate Parallax Camera</span>
       </div>
