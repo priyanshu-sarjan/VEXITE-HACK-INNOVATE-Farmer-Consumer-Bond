@@ -13,7 +13,10 @@ import {
   ShoppingBag,
   ArrowRight,
   TrendingUp,
-  CheckCircle2
+  CheckCircle2,
+  Camera,
+  Mic,
+  Scale
 } from 'lucide-react';
 
 import Navbar from '@/components/navbar/Navbar';
@@ -22,6 +25,11 @@ import TelemetryOverlay from '@/components/iot/TelemetryOverlay';
 import RouteOptimizer from '@/components/logistics/RouteOptimizer';
 import MCPAgentTerminal from '@/components/mcp/MCPAgentTerminal';
 import SmartEscrow from '@/components/web3/SmartEscrow';
+
+import ProduceGraderModal from '@/components/ai/ProduceGraderModal';
+import VoiceNegotiatorModal from '@/components/ai/VoiceNegotiatorModal';
+import DisputeArbiterCard from '@/components/ai/DisputeArbiterCard';
+import FarmerVoiceAssistantWidget from '@/components/ai/FarmerVoiceAssistantWidget';
 
 // Dynamically import Three.js 3D Canvas with ssr: false to prevent SSR hydration mismatch
 const ColdHubCanvas = dynamic(() => import('@/components/canvas/ColdHubCanvas'), {
@@ -41,6 +49,10 @@ export default function Home() {
   const [capacityLoad, setCapacityLoad] = useState(65);
   const [selectedHotspot, setSelectedHotspot] = useState(null);
   const [activeNodeId, setActiveNodeId] = useState('NODE-01');
+
+  // Gemini AI Modals state
+  const [isGraderOpen, setIsGraderOpen] = useState(false);
+  const [isNegotiatorOpen, setIsNegotiatorOpen] = useState(false);
 
   const handleConnectWallet = () => {
     setWalletConnected(true);
@@ -69,7 +81,7 @@ export default function Home() {
               className="inline-flex items-center gap-2 glass-pill px-4 py-1.5 rounded-full text-xs font-mono text-emerald-400 border border-emerald-500/30"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>SIH 2026 Problem ID: SIH26033 • Department of Consumer Affairs</span>
+              <span>SIH 2026 Problem ID: SIH26033 • Best Use of Google Gemini API</span>
             </motion.div>
 
             <motion.h1 
@@ -87,8 +99,27 @@ export default function Home() {
               transition={{ delay: 0.2 }}
               className="text-sm md:text-base text-slate-400 font-medium"
             >
-              Smart Off-Grid Solar Micro-Cold Hubs, ESP32 Real-Time Telemetry, Autonomous AI Heat-Bypass Logistics, and Web3 Smart Escrow.
+              Powered by Google Gemini 2.5 Flash Multimodal Vision, Multilingual Voice Trade Contracts, Agentic Dispute Arbitration, and Solar Cold Hub Telemetry.
             </motion.p>
+
+            {/* Quick Action Badges for Gemini Features */}
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <button
+                onClick={() => setIsGraderOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition-all shadow-lg"
+              >
+                <Camera className="w-4 h-4 text-emerald-400" />
+                <span>📷 Gemini Vision Quality Grader</span>
+              </button>
+
+              <button
+                onClick={() => setIsNegotiatorOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-teal-500/20 text-teal-300 border border-teal-500/40 hover:bg-teal-500/30 transition-all shadow-lg"
+              >
+                <Mic className="w-4 h-4 text-teal-400" />
+                <span>🎙️ Multilingual Voice Trade Negotiator</span>
+              </button>
+            </div>
           </div>
 
           {/* Interactive 3D Canvas Viewport */}
@@ -125,6 +156,9 @@ export default function Home() {
 
         {/* ---------------- AI ROUTE OPTIMIZER ---------------- */}
         <RouteOptimizer />
+
+        {/* ---------------- GEMINI AGENTIC DISPUTE ARBITER ---------------- */}
+        <DisputeArbiterCard />
 
         {/* ---------------- AUTONOMOUS MCP AGENT TERMINAL ---------------- */}
         <MCPAgentTerminal 
@@ -218,10 +252,36 @@ export default function Home() {
 
       </main>
 
+      {/* Floating Farmer Voice & Knowledge Assistant Widget (Bottom-Left Icon) */}
+      <FarmerVoiceAssistantWidget 
+        onOpenGrader={() => setIsGraderOpen(true)}
+        onOpenNegotiator={() => setIsNegotiatorOpen(true)}
+      />
+
+      {/* Gemini Multimodal Vision Quality Grader Modal */}
+      <ProduceGraderModal 
+        isOpen={isGraderOpen}
+        onClose={() => setIsGraderOpen(false)}
+        onLockEscrow={() => {
+          const el = document.getElementById('smart-escrow');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }}
+      />
+
+      {/* Multilingual Voice Negotiator Modal */}
+      <VoiceNegotiatorModal 
+        isOpen={isNegotiatorOpen}
+        onClose={() => setIsNegotiatorOpen(false)}
+        onContractGenerated={() => {
+          const el = document.getElementById('smart-escrow');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }}
+      />
+
       {/* Footer */}
       <footer className="border-t border-white/10 py-8 px-4 text-center font-mono text-xs text-slate-500 bg-slate-950">
         <p>AgriFresh 3D Spatial Platform • SIH 2026 Problem Statement ID: SIH26033</p>
-        <p className="mt-1 text-[11px] text-slate-600">Ministry of Consumer Affairs, Food & Public Distribution — Department of Consumer Affairs</p>
+        <p className="mt-1 text-[11px] text-slate-600">Ministry of Consumer Affairs, Food & Public Distribution — Best Use of Google Gemini API</p>
       </footer>
     </div>
   );
