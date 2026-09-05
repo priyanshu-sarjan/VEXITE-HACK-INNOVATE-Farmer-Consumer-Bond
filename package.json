@@ -12,6 +12,8 @@
     "@google/genai": "^2.21.0",
     "@react-three/drei": "^9.121.5",
     "@react-three/fiber": "^8.18.0",
+    "@supabase/server": "^1.5.3",
+    "@supabase/supabase-js": "^2.115.0",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "framer-motion": "^12.4.7",
