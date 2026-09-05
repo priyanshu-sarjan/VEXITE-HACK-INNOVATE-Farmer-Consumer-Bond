@@ -1,16 +1,6 @@
 "use client";
 
 import React, { useEffect, useRef } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-
-// Fix Leaflet Default Icon URLs for Webpack / Next.js
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-});
 
 export default function LeafletGISContainer({
   mandiData,
@@ -21,32 +11,56 @@ export default function LeafletGISContainer({
 }) {
   const mapRef = useRef(null);
   const leafletMapRef = useRef(null);
+  const leafletInstanceRef = useRef(null);
   const markersRef = useRef([]);
   const routePolylineRef = useRef(null);
 
-  // Initialize Leaflet Map Instance
+  // Initialize Leaflet Map Instance on client-side only
   useEffect(() => {
     if (typeof window === 'undefined' || !mapRef.current) return;
 
-    if (!leafletMapRef.current) {
-      // Center India [20.5937, 78.9629], zoom 5
-      const map = L.map(mapRef.current, {
-        center: [20.5937, 78.9629],
-        zoom: 5,
-        zoomControl: true,
-        attributionControl: false
-      });
+    let isMounted = true;
 
-      // CartoDB Dark Matter Tile Layer
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 18,
-        subdomains: 'abcd',
-      }).addTo(map);
+    async function initMap() {
+      const L = (await import('leaflet')).default;
+      leafletInstanceRef.current = L;
 
-      leafletMapRef.current = map;
+      // Fix Leaflet Default Icon URLs for Webpack / Next.js
+      if (L.Icon && L.Icon.Default && L.Icon.Default.prototype) {
+        delete L.Icon.Default.prototype._getIconUrl;
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+          iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+          shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+        });
+      }
+
+      if (!isMounted || !mapRef.current) return;
+
+      if (!leafletMapRef.current) {
+        // Center India [20.5937, 78.9629], zoom 5
+        const map = L.map(mapRef.current, {
+          center: [20.5937, 78.9629],
+          zoom: 5,
+          zoomControl: true,
+          attributionControl: false
+        });
+
+        // CartoDB Dark Matter Tile Layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          maxZoom: 18,
+          subdomains: 'abcd',
+        }).addTo(map);
+
+        leafletMapRef.current = map;
+        renderMapElements(L, map);
+      }
     }
 
+    initMap();
+
     return () => {
+      isMounted = false;
       if (leafletMapRef.current) {
         leafletMapRef.current.remove();
         leafletMapRef.current = null;
@@ -54,10 +68,9 @@ export default function LeafletGISContainer({
     };
   }, []);
 
-  // Update Markers and Active Route on Map when selectedMandi or filters change
-  useEffect(() => {
-    const map = leafletMapRef.current;
-    if (!map) return;
+  // Function to render markers and polyline
+  const renderMapElements = (L, map) => {
+    if (!L || !map) return;
 
     // Clear existing markers
     markersRef.current.forEach((m) => m.remove());
@@ -157,7 +170,15 @@ export default function LeafletGISContainer({
       // Pan map smoothly to selected location
       map.panTo([destLat, destLng], { animate: true, duration: 1 });
     }
+  };
 
+  // Update Markers and Active Route on Map when selectedMandi or filters change
+  useEffect(() => {
+    const L = leafletInstanceRef.current;
+    const map = leafletMapRef.current;
+    if (L && map) {
+      renderMapElements(L, map);
+    }
   }, [mandiData, selectedMandi, filterType, searchQuery, onSelectMandi]);
 
   return <div ref={mapRef} className="w-full h-full min-h-[520px] rounded-3xl" />;
