@@ -30,6 +30,7 @@ import ProduceGraderModal from '@/components/ai/ProduceGraderModal';
 import VoiceNegotiatorModal from '@/components/ai/VoiceNegotiatorModal';
 import DisputeArbiterCard from '@/components/ai/DisputeArbiterCard';
 import FarmerVoiceAssistantWidget from '@/components/ai/FarmerVoiceAssistantWidget';
+import AdminControlPanel from '@/components/admin/AdminControlPanel';
 
 // Dynamically import Three.js 3D Canvas with ssr: false to prevent SSR hydration mismatch
 const ColdHubCanvas = dynamic(() => import('@/components/canvas/ColdHubCanvas'), {
@@ -50,6 +51,13 @@ export default function Home() {
   const [selectedHotspot, setSelectedHotspot] = useState(null);
   const [activeNodeId, setActiveNodeId] = useState('NODE-01');
 
+  // Admin Control Settings State
+  const [chamberTemp, setChamberTemp] = useState(3.8);
+  const [transitDuration, setTransitDuration] = useState(12);
+  const [ethyleneThreshold, setEthyleneThreshold] = useState(0.14);
+  const [pingInterval, setPingInterval] = useState(2);
+  const [autoEscrowEnabled, setAutoEscrowEnabled] = useState(true);
+
   // Gemini AI Modals state
   const [isGraderOpen, setIsGraderOpen] = useState(false);
   const [isNegotiatorOpen, setIsNegotiatorOpen] = useState(false);
@@ -66,6 +74,20 @@ export default function Home() {
         onConnectWallet={handleConnectWallet}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+      />
+
+      {/* Admin Supply Chain Control Dashboard Drawer */}
+      <AdminControlPanel 
+        chamberTemp={chamberTemp}
+        onUpdateChamberTemp={setChamberTemp}
+        transitDuration={transitDuration}
+        onUpdateTransitDuration={setTransitDuration}
+        ethyleneThreshold={ethyleneThreshold}
+        onUpdateEthyleneThreshold={setEthyleneThreshold}
+        pingInterval={pingInterval}
+        onUpdatePingInterval={setPingInterval}
+        autoEscrowEnabled={autoEscrowEnabled}
+        onToggleAutoEscrow={() => setAutoEscrowEnabled(!autoEscrowEnabled)}
       />
 
       {/* Main Content Area */}
@@ -99,7 +121,7 @@ export default function Home() {
               transition={{ delay: 0.2 }}
               className="text-sm md:text-base text-slate-400 font-medium"
             >
-              Powered by Google Gemini 2.5 Flash Multimodal Vision, Multilingual Voice Trade Contracts, Agentic Dispute Arbitration, and Solar Cold Hub Telemetry.
+              Powered by Google Gemini 2.5 Flash Multimodal Vision, Multilingual Voice Trade Contracts, Multi-Party Stakeholder Dispute Arbitration, and Admin Supply Chain Controls.
             </motion.p>
 
             {/* Quick Action Badges for Gemini Features */}
@@ -157,7 +179,7 @@ export default function Home() {
         {/* ---------------- AI ROUTE OPTIMIZER ---------------- */}
         <RouteOptimizer />
 
-        {/* ---------------- GEMINI AGENTIC DISPUTE ARBITER ---------------- */}
+        {/* ---------------- GEMINI MULTI-PARTY RESPONSIBILITY ARBITER ---------------- */}
         <DisputeArbiterCard />
 
         {/* ---------------- AUTONOMOUS MCP AGENT TERMINAL ---------------- */}
