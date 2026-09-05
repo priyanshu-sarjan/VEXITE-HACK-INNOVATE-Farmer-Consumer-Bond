@@ -28,7 +28,7 @@ export default function InteractiveConfigurator({
   onConnectWallet,
   walletConnected
 }) {
-  const [drawerOpen, setDrawerOpen] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const models = [
     {
@@ -59,22 +59,22 @@ export default function InteractiveConfigurator({
 
   return (
     <>
-      {/* Floating Bottom Action Dock */}
+      {/* Floating Bottom Action Dock - Framed Cleanly */}
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-full max-w-4xl px-4 pointer-events-none"
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-full max-w-5xl px-4 pointer-events-none"
       >
-        <div className="pointer-events-auto flex items-center justify-between gap-4 p-3 rounded-full glass-panel border border-white/10 shadow-2xl backdrop-blur-2xl bg-slate-900/85">
+        <div className="pointer-events-auto flex flex-wrap items-center justify-between gap-2.5 p-2.5 md:p-3 rounded-full glass-panel border border-white/10 shadow-2xl backdrop-blur-2xl bg-slate-900/90">
           {/* Quick Model Selector Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
             {models.map((m) => (
               <button
                 key={m.id}
                 onClick={() => onSelectModel(m.id)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
                   activeModel === m.id
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-lg shadow-emerald-500/25 border border-emerald-300 font-bold'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md border border-emerald-300 font-extrabold'
                     : 'bg-slate-800/60 text-slate-300 hover:bg-slate-700/60 border border-white/5'
                 }`}
               >
@@ -84,23 +84,26 @@ export default function InteractiveConfigurator({
             ))}
           </div>
 
-          {/* Drawer Toggle & Buy Direct CTA */}
+          {/* Drawer Toggle & Framed Web3 Buy Direct CTA */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => setDrawerOpen(!drawerOpen)}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-semibold bg-slate-800/80 text-slate-200 hover:bg-slate-700/80 border border-white/10 transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-800/80 text-slate-200 hover:bg-slate-700/80 border border-white/10 transition-all whitespace-nowrap"
             >
               <Sliders className="w-3.5 h-3.5 text-emerald-400" />
               <span className="hidden sm:inline">Diagnostics & Config</span>
             </button>
 
-            <button
-              onClick={onConnectWallet}
-              className="flex items-center gap-2 px-5 py-2 rounded-full text-xs font-extrabold bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 text-slate-950 hover:brightness-110 shadow-lg shadow-emerald-500/30 transition-all"
-            >
-              <Wallet className="w-4 h-4" />
-              <span>{walletConnected ? 'Escrow Ready' : 'Buy Direct / Escrow'}</span>
-            </button>
+            {/* Wallet Button Framed Cleanly Inside Dock */}
+            <div className="p-0.5 rounded-full bg-gradient-to-r from-emerald-500/30 to-teal-500/30 border border-emerald-500/40">
+              <button
+                onClick={onConnectWallet}
+                className="flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-extrabold bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 text-slate-950 hover:brightness-110 shadow-md transition-all whitespace-nowrap"
+              >
+                <Wallet className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{walletConnected ? '0x8F92... (Escrow Ready)' : 'Buy Direct / Escrow'}</span>
+              </button>
+            </div>
           </div>
         </div>
       </motion.div>
@@ -112,7 +115,7 @@ export default function InteractiveConfigurator({
             initial={{ opacity: 0, x: 80 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 80 }}
-            className="fixed top-24 right-6 z-40 w-80 md:w-96 rounded-3xl glass-panel p-5 border border-white/10 shadow-2xl backdrop-blur-2xl bg-slate-900/90 text-slate-200"
+            className="fixed top-24 right-6 z-40 w-80 md:w-96 rounded-3xl glass-panel p-5 border border-white/10 shadow-2xl backdrop-blur-2xl bg-slate-900/95 text-slate-200"
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
@@ -207,14 +210,16 @@ export default function InteractiveConfigurator({
                 </div>
               </div>
 
-              {/* Action Button */}
-              <button
-                onClick={onConnectWallet}
-                className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold text-xs tracking-wide shadow-lg shadow-emerald-500/20 hover:brightness-110 transition-all flex items-center justify-center gap-2"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>Trigger Automated Smart Escrow</span>
-              </button>
+              {/* Framed Action Button */}
+              <div className="p-0.5 rounded-2xl bg-gradient-to-r from-emerald-500/30 to-teal-500/30 border border-emerald-500/40">
+                <button
+                  onClick={onConnectWallet}
+                  className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold text-xs tracking-wide shadow-lg shadow-emerald-500/20 hover:brightness-110 transition-all flex items-center justify-center gap-2"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Trigger Automated Smart Escrow</span>
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
