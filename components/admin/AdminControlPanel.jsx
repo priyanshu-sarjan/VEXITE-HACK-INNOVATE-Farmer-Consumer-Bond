@@ -15,7 +15,10 @@ import {
   CheckCircle2,
   X,
   Settings,
-  Zap
+  Zap,
+  Activity,
+  Sparkles,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function AdminControlPanel({
@@ -32,6 +35,28 @@ export default function AdminControlPanel({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [saveToast, setSaveToast] = useState(false);
+
+  // Dynamic Freshness Score Engine (%)
+  const calculateFreshnessScore = () => {
+    const tempPenalty = Math.max(0, chamberTemp - 3.5) * 4.5;
+    const durationPenalty = transitDuration * 1.4;
+    const ethylenePenalty = (ethyleneThreshold - 0.05) * 75;
+    const pingPenalty = (pingInterval - 1) * 1.2;
+
+    const score = 100 - (tempPenalty + durationPenalty + ethylenePenalty + pingPenalty);
+    return Math.min(99.4, Math.max(35.0, +score.toFixed(1)));
+  };
+
+  const freshnessScore = calculateFreshnessScore();
+
+  const getFreshnessGrade = (score) => {
+    if (score >= 88) return { label: 'Grade A+ (Certified Prime)', color: 'text-emerald-400', bg: 'bg-emerald-500/20', border: 'border-emerald-500/40', barColor: 'bg-emerald-500' };
+    if (score >= 74) return { label: 'Grade A (Market Standard)', color: 'text-teal-300', bg: 'bg-teal-500/20', border: 'border-teal-500/40', barColor: 'bg-teal-400' };
+    if (score >= 58) return { label: 'Grade B (Discount Sale Required)', color: 'text-amber-400', bg: 'bg-amber-500/20', border: 'border-amber-500/40', barColor: 'bg-amber-400' };
+    return { label: 'Rot Risk Alert (Immediate Cold Relay)', color: 'text-rose-400', bg: 'bg-rose-500/20', border: 'border-rose-500/40', barColor: 'bg-rose-500' };
+  };
+
+  const grade = getFreshnessGrade(freshnessScore);
 
   const handleSaveConfig = () => {
     setSaveToast(true);
@@ -50,6 +75,9 @@ export default function AdminControlPanel({
         >
           <Settings className="w-4 h-4 text-emerald-400 animate-spin-slow" />
           <span>Admin Logistics Dashboard</span>
+          <span className="ml-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] border border-emerald-500/30">
+            {freshnessScore}% Fresh
+          </span>
         </motion.button>
       </div>
 
@@ -60,7 +88,7 @@ export default function AdminControlPanel({
             initial={{ opacity: 0, x: -80 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -80 }}
-            className="fixed top-36 left-6 z-40 w-80 md:w-96 rounded-3xl glass-panel p-5 border border-emerald-500/30 shadow-2xl backdrop-blur-2xl bg-slate-900/95 text-slate-100 max-h-[80vh] overflow-y-auto font-mono text-xs space-y-5"
+            className="fixed top-36 left-6 z-40 w-80 md:w-96 rounded-3xl glass-panel p-5 border border-emerald-500/30 shadow-2xl backdrop-blur-2xl bg-slate-900/95 text-slate-100 max-h-[80vh] overflow-y-auto font-mono text-xs space-y-5 custom-scrollbar"
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
@@ -76,9 +104,38 @@ export default function AdminControlPanel({
               </button>
             </div>
 
-            <p className="text-[11px] text-slate-400">
-              Override micro-cold hub chamber setpoints, max transit hours, scrubber sensitivity, and IoT telemetry ping rates in real time:
-            </p>
+            {/* DYNAMIC FRESHNESS SCORE SIMULATOR DISPLAY */}
+            <div className="p-4 rounded-2xl bg-slate-950 border border-emerald-500/40 space-y-3 shadow-xl">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-300 font-bold flex items-center gap-1.5 text-xs">
+                  <Activity className="w-4 h-4 text-emerald-400 animate-pulse" />
+                  Dynamic Predicted Freshness Index
+                </span>
+                <span className={`text-base font-extrabold ${grade.color}`}>
+                  {freshnessScore}%
+                </span>
+              </div>
+
+              {/* Progress Meter Bar */}
+              <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden border border-white/10 p-0.5">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${freshnessScore}%` }}
+                  transition={{ type: "spring", stiffness: 100 }}
+                  className={`h-full rounded-full ${grade.barColor}`}
+                />
+              </div>
+
+              {/* Grade Badge */}
+              <div className={`p-2 rounded-xl border text-[11px] font-bold text-center ${grade.bg} ${grade.color} ${grade.border}`}>
+                {grade.label}
+              </div>
+
+              <div className="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-white/5">
+                <span>Est. Shelf Life: <strong className="text-white">{(freshnessScore * 0.14).toFixed(1)} Days</strong></span>
+                <span>Degradation: <strong className="text-rose-400">{(100 - freshnessScore).toFixed(1)}%</strong></span>
+              </div>
+            </div>
 
             {/* Controls List */}
             <div className="space-y-4">
@@ -102,8 +159,8 @@ export default function AdminControlPanel({
                 />
                 <div className="flex justify-between text-[10px] text-slate-500">
                   <span>1.0°C (Deep Chill)</span>
-                  <span>4.0°C (Target)</span>
-                  <span>10.0°C (Ambient)</span>
+                  <span>3.5°C (Optimal)</span>
+                  <span>10.0°C (High Decay)</span>
                 </div>
               </div>
 
@@ -132,7 +189,7 @@ export default function AdminControlPanel({
                 </div>
               </div>
 
-              {/* 3. Ethylene Scrubber Threshold (PPM) */}
+              {/* 3. Ethylene Scrubber Trigger (PPM) */}
               <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-white/5 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-300 flex items-center gap-1.5 font-bold">
@@ -151,8 +208,8 @@ export default function AdminControlPanel({
                   className="w-full accent-amber-500 cursor-pointer"
                 />
                 <div className="flex justify-between text-[10px] text-slate-500">
-                  <span>0.05 PPM (Strict)</span>
-                  <span>0.50 PPM (Relaxed)</span>
+                  <span>0.05 PPM (Active Scrubber)</span>
+                  <span>0.50 PPM (High Ripening)</span>
                 </div>
               </div>
 
@@ -175,7 +232,7 @@ export default function AdminControlPanel({
                   className="w-full accent-blue-500 cursor-pointer"
                 />
                 <div className="flex justify-between text-[10px] text-slate-500">
-                  <span>1s Ultra Live</span>
+                  <span>1s Realtime</span>
                   <span>10s Power Save</span>
                 </div>
               </div>
@@ -213,7 +270,7 @@ export default function AdminControlPanel({
                   animate={{ opacity: 1, y: 0 }}
                   className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-center text-[11px] font-bold"
                 >
-                  ✓ Admin Logistics Config Deployed to Cold Hub & IoT Sensors!
+                  ✓ Freshness Index Updated & Telemetry Pushed to IoT Nodes!
                 </motion.div>
               )}
             </div>
