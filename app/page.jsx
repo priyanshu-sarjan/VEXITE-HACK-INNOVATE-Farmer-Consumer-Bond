@@ -31,6 +31,7 @@ import VoiceNegotiatorModal from '@/components/ai/VoiceNegotiatorModal';
 import DisputeArbiterCard from '@/components/ai/DisputeArbiterCard';
 import FarmerVoiceAssistantWidget from '@/components/ai/FarmerVoiceAssistantWidget';
 import AdminControlPanel from '@/components/admin/AdminControlPanel';
+import RealWorldTransitMap from '@/components/maps/RealWorldTransitMap';
 
 // Dynamically import Three.js 3D Canvas with ssr: false to prevent SSR hydration mismatch
 const ColdHubCanvas = dynamic(() => import('@/components/canvas/ColdHubCanvas'), {
@@ -169,6 +170,9 @@ export default function Home() {
           onConnectWallet={handleConnectWallet}
           walletConnected={walletConnected}
         />
+
+        {/* ---------------- REAL-WORLD GEO-TAGGED MAP & FLEET TRACKER ---------------- */}
+        <RealWorldTransitMap />
 
         {/* ---------------- IOT TELEMETRY OVERLAY ---------------- */}
         <TelemetryOverlay 

@@ -8,7 +8,8 @@ import {
   MapPin, 
   Wallet, 
   Activity, 
-  Sparkles
+  Sparkles,
+  Navigation
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -17,6 +18,7 @@ export default function Navbar({ walletConnected, onConnectWallet, activeTab, se
 
   const navLinks = [
     { id: '3d-hub', label: '3D Spatial Hub', icon: Box },
+    { id: 'real-world-map', label: 'Real-World Transit', icon: Navigation },
     { id: 'telemetry', label: 'IoT Telemetry', icon: Activity },
     { id: 'route-ai', label: 'AI Heat-Bypass', icon: MapPin },
     { id: 'mcp-agent', label: 'Autonomous MCP', icon: Cpu },
