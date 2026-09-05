@@ -47,23 +47,43 @@ export default function RoleAuthModal({ isOpen, onClose, userProfile, onAuthenti
 
     if (res.success) {
       setStep(2);
-      setStatusMessage({ type: 'success', text: `OTP sent to ${phone}! (Test Code: 123456)` });
+      setStatusMessage({ 
+        type: 'success', 
+        text: `OTP sent to ${res.formattedPhone || phone}! Check your phone for SMS code.` 
+      });
     } else {
-      // Fallback for development/testing
-      setStep(2);
-      setStatusMessage({ type: 'info', text: `Testing mode: Use OTP 123456 to verify.` });
+      // Strictly do NOT auto-advance to step 2 if Supabase OTP failed!
+      setStatusMessage({ 
+        type: 'error', 
+        text: `❌ Supabase Auth Error: ${res.error}` 
+      });
     }
   };
 
   const handleVerifyOtp = async (e) => {
     e?.preventDefault();
+    if (!otpToken || otpToken.trim().length === 0) {
+      setStatusMessage({ type: 'error', text: 'Please enter the 6-digit OTP code received on your phone.' });
+      return;
+    }
+
     setIsLoading(true);
     setStatusMessage(null);
 
-    const res = await verifyOtp(phone, otpToken || '123456', selectedRole, fullName, district);
+    const res = await verifyOtp(phone, otpToken.trim(), selectedRole, fullName, district);
     setIsLoading(false);
 
+    if (!res.success) {
+      // Strictly BLOCK authentication if Supabase verifyOtp fails!
+      setStatusMessage({ 
+        type: 'error', 
+        text: `❌ Invalid OTP Code: ${res.error || 'Verification failed. Please check the code and try again.'}` 
+      });
+      return;
+    }
+
     const profileData = {
+      id: res.user?.id,
       name: fullName,
       role: selectedRole.toUpperCase(),
       location: `${district}, IN`,
@@ -72,10 +92,11 @@ export default function RoleAuthModal({ isOpen, onClose, userProfile, onAuthenti
     };
 
     onAuthenticate(profileData);
-    setStatusMessage({ type: 'success', text: 'Authentication successful! Profile synced with Supabase.' });
+    setStatusMessage({ type: 'success', text: '🎉 Phone OTP Verified! Session created in Supabase Auth.' });
     setTimeout(() => {
       onClose();
       setStep(1);
+      setOtpToken('');
     }, 1200);
   };
 
@@ -295,11 +316,28 @@ export default function RoleAuthModal({ isOpen, onClose, userProfile, onAuthenti
 
           {statusMessage && (
             <div className={`p-3 rounded-xl text-[11px] font-bold text-center border ${
-              statusMessage.type === 'success' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+              statusMessage.type === 'success' 
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' 
+                : statusMessage.type === 'error'
+                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
             }`}>
               {statusMessage.text}
             </div>
           )}
+
+          {/* Developer Guidance Tip for Supabase Phone Auth */}
+          <div className="p-2.5 rounded-xl bg-slate-950/80 border border-amber-500/20 text-[10px] text-amber-200/90 leading-relaxed space-y-1">
+            <p className="font-bold flex items-center gap-1 text-amber-400">
+              <Lock className="w-3 h-3" /> Supabase Phone Auth Setup Note:
+            </p>
+            <p>
+              To receive real SMS to phone numbers, configure SMS Gateway (Twilio) in your Supabase Project Dashboard under <code>Authentication → Providers → Phone</code>.
+            </p>
+            <p>
+              Or add a zero-cost test number in Supabase Console (e.g., Phone: <code>+919876543210</code>, Code: <code>123456</code>) to test real verification immediately without SMS fees.
+            </p>
+          </div>
 
           {/* Quick Demo Instant Role Switcher */}
           <div className="pt-3 border-t border-white/10 space-y-2">

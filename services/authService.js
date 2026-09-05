@@ -6,11 +6,16 @@ import { supabase } from '@/lib/supabaseClient';
  */
 export async function signInWithOtp(phone) {
   try {
+    let formattedPhone = (phone || '').trim();
+    if (!formattedPhone.startsWith('+')) {
+      formattedPhone = `+91${formattedPhone.replace(/^0+/, '')}`;
+    }
+
     const { data, error } = await supabase.auth.signInWithOtp({
-      phone,
+      phone: formattedPhone,
     });
     if (error) throw error;
-    return { success: true, data };
+    return { success: true, formattedPhone, data };
   } catch (error) {
     console.error('Error sending OTP:', error.message);
     return { success: false, error: error.message };
@@ -27,8 +32,13 @@ export async function signInWithOtp(phone) {
  */
 export async function verifyOtp(phone, token, role = 'farmer', fullName = 'User', district = 'Nashik') {
   try {
+    let formattedPhone = (phone || '').trim();
+    if (!formattedPhone.startsWith('+')) {
+      formattedPhone = `+91${formattedPhone.replace(/^0+/, '')}`;
+    }
+
     const { data, error } = await supabase.auth.verifyOtp({
-      phone,
+      phone: formattedPhone,
       token,
       type: 'sms',
       options: {
@@ -47,7 +57,7 @@ export async function verifyOtp(phone, token, role = 'farmer', fullName = 'User'
       await supabase.from('profiles').upsert([
         {
           id: data.user.id,
-          phone: phone,
+          phone: formattedPhone,
           full_name: fullName,
           role: role,
           district: district,
