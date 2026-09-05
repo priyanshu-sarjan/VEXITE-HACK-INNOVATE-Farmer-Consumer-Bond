@@ -1,0 +1,81 @@
+# AgriFresh - 3D Spatial Architecture & System Implementation Plan (SIH 2026 - SIH26033)
+
+AgriFresh is a 3D spatial web platform for the Ministry of Consumer Affairs, Food & Public Distribution. It integrates **Solar-Powered Micro-Cold Hubs**, **IoT Telemetry Nodes**, **AI Dynamic Heat Corridor Bypass Logistics**, **Autonomous MCP (Model Context Protocol) AI Agents**, and **Web3 Smart Escrow Contracts** to prevent post-harvest decay, eliminate distress sales, and provide direct farmer payouts.
+
+## User Review Required
+
+> [!IMPORTANT]
+> - **Framework & 3D Stack**: Built with Next.js (App Router), React Three Fiber (`@react-three/fiber`), Drei (`@react-three/drei`), Three.js, Framer Motion, and Tailwind CSS.
+> - **Procedural 3D Model Fallback**: `ColdHubCanvas` implements procedural 3D geometry (modular container, solar panels, cooling compressor, status LEDs, terrain, foliage) to guarantee instant rendering without external model loading delays.
+> - **Git Remote**: Will initialize Git and push all completed code to `https://github.com/priyanshu-sarjan/VEXITE-HACK-INNOVATE-Farmer-Consumer-Bond.git` on branch `main`.
+
+---
+
+## Key Features & Architecture
+
+### 1. Visual & Spatial Design System
+- **Palette**: Dark matte slate (`#121316`, `#1e2025`), deep charcoal (`#0a0b0d`), emerald accent glow (`#10b981`), frosted glass surfaces.
+- **Glassmorphism**: `backdrop-blur-xl bg-neutral-900/60 border border-white/10 shadow-2xl rounded-2xl`.
+- **Micro-Animations**: Mouse parallax, 3D tilt cards, fluid drawer transitions, live pulse beacons.
+
+### 2. Core Modules
+1. **Interactive 3D Cold Hub Viewport (`components/canvas/ColdHubCanvas.jsx`)**:
+   - Procedural 3D solar micro-cold hub on lush terrain.
+   - Mouse parallax camera rig using `useFrame`.
+   - Clickable 3D hotspots (Internal Chamber Temp, Solar PV Array, Ethylene Scrubber, Gate-In Lock).
+2. **Interactive Configurator (`components/ui/InteractiveConfigurator.jsx`)**:
+   - Floating right drawer and bottom dock for model selector (10MT Micro-Hub vs 20MT Solar Reefer vs 50MT Macro Hub), capacity load simulator, and quick Web3 buy/reserve actions.
+3. **IoT Telemetry Overlay (`components/iot/TelemetryOverlay.jsx`)**:
+   - Real-time ESP32 telemetry HUD (GPS, Temp °C, RH%, Ethylene PPM, Decay Shelf-Life Index).
+   - Active transit shipment switcher syncing 3D canvas state.
+4. **Autonomous MCP AI Agent Hub (`components/mcp/MCPAgentTerminal.jsx`)**:
+   - Terminal interface exposing MCP tools (`get_mandi_prices`, `check_iot_shelf_life`, `reserve_cold_hub_slot`, `trigger_escrow_release`).
+   - Autonomous execution timeline & price anomaly detector.
+5. **AI Route & Heat Bypass Logistics (`components/logistics/RouteOptimizer.jsx`)**:
+   - Real-time route optimization bypassing ambient heat corridors and traffic bottlenecks to extend crop shelf life.
+6. **Web3 Smart Escrow & Direct Payouts (`components/web3/SmartEscrow.jsx`)**:
+   - Wallet connection & 4-stage automated escrow contract verification upon IoT gate-in.
+
+---
+
+## Proposed File Structure
+
+```
+├── app/
+│   ├── layout.jsx
+│   ├── page.jsx
+│   └── globals.css
+├── components/
+│   ├── navbar/
+│   │   └── Navbar.jsx
+│   ├── canvas/
+│   │   └── ColdHubCanvas.jsx
+│   ├── ui/
+│   │   └── InteractiveConfigurator.jsx
+│   ├── iot/
+│   │   └── TelemetryOverlay.jsx
+│   ├── mcp/
+│   │   └── MCPAgentTerminal.jsx
+│   ├── logistics/
+│   │   └── RouteOptimizer.jsx
+│   └── web3/
+│       └── SmartEscrow.jsx
+├── lib/
+│   ├── store.js (State management & simulated telemetry streams)
+│   └── utils.js
+├── public/
+├── tailwind.config.js
+├── next.config.mjs
+└── package.json
+```
+
+---
+
+## Verification Plan
+
+### Automated Tests & Builds
+- Run `npm run build` to verify standard Next.js build compilation with zero errors.
+
+### Manual Verification
+- Test 3D canvas mouse parallax, hotspot clicking, model toggling, IoT stream updates, MCP tool invocation, and smart contract escrow simulation.
+- Verify Git push to remote repository `https://github.com/priyanshu-sarjan/VEXITE-HACK-INNOVATE-Farmer-Consumer-Bond.git`.
