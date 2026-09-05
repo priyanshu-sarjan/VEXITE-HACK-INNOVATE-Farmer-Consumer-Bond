@@ -74,14 +74,90 @@ export async function verifyOtp(phone, token, role = 'farmer', fullName = 'User'
 }
 
 /**
- * Sign in with Google OAuth Provider
+ * Send Email OTP (6-digit code or Magic Link to email inbox)
+ * @param {string} email
+ * @param {string} role - 'farmer' | 'consumer' | 'trader'
  */
-export async function signInWithGoogle() {
+export async function sendEmailOtp(email, role = 'farmer') {
   try {
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email: (email || '').trim(),
+      options: {
+        data: { role: role },
+        shouldCreateUser: true,
+      },
+    });
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error sending Email OTP:', error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Verify 6-digit Email OTP token
+ * @param {string} email
+ * @param {string} token
+ * @param {string} role
+ * @param {string} fullName
+ * @param {string} district
+ */
+export async function verifyEmailOtp(email, token, role = 'farmer', fullName = 'User', district = 'Nashik') {
+  try {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: (email || '').trim(),
+      token: (token || '').trim(),
+      type: 'email',
+      options: {
+        data: {
+          full_name: fullName,
+          role: role,
+          district: district,
+        },
+      },
+    });
+
+    if (error) throw error;
+
+    if (data?.user) {
+      await supabase.from('profiles').upsert([
+        {
+          id: data.user.id,
+          email: (email || '').trim(),
+          full_name: fullName,
+          role: role,
+          district: district,
+          updated_at: new Date().toISOString(),
+        },
+      ]);
+    }
+
+    return { success: true, user: data.user, session: data.session };
+  } catch (error) {
+    console.error('Error verifying Email OTP:', error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Sign in with Google OAuth 2.0 Direct Single Sign-On
+ * @param {string} role - Selected user role
+ */
+export async function signInWithGoogle(role = 'farmer') {
+  try {
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/`,
+        redirectTo: `${origin}/auth/callback`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+        data: {
+          role: role,
+        },
       },
     });
     if (error) throw error;

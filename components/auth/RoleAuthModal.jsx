@@ -9,6 +9,7 @@ import {
   ShoppingBag, 
   X, 
   Phone, 
+  Mail,
   KeyRound, 
   ArrowRight, 
   CheckCircle2, 
@@ -18,14 +19,15 @@ import {
   RefreshCw,
   LogOut
 } from 'lucide-react';
-import { signInWithOtp, verifyOtp, signInWithGoogle, signOut } from '@/services/authService';
+import { signInWithOtp, verifyOtp, sendEmailOtp, verifyEmailOtp, signInWithGoogle, signOut } from '@/services/authService';
 
 export default function RoleAuthModal({ isOpen, onClose, userProfile, onAuthenticate }) {
-  const [authMethod, setAuthMethod] = useState('phone'); // 'phone' | 'google'
+  const [authMethod, setAuthMethod] = useState('phone'); // 'phone' | 'email' | 'google'
   const [selectedRole, setSelectedRole] = useState('farmer'); // 'farmer' | 'trader' | 'consumer'
   
   // Form State
   const [phone, setPhone] = useState('+919876543210');
+  const [email, setEmail] = useState('farmer@example.com');
   const [fullName, setFullName] = useState('Ramesh Patil');
   const [district, setDistrict] = useState('Nashik');
   const [otpToken, setOtpToken] = useState('');
@@ -37,7 +39,7 @@ export default function RoleAuthModal({ isOpen, onClose, userProfile, onAuthenti
 
   if (!isOpen) return null;
 
-  const handleSendOtp = async (e) => {
+  const handleSendPhoneOtp = async (e) => {
     e?.preventDefault();
     setIsLoading(true);
     setStatusMessage(null);
@@ -52,7 +54,6 @@ export default function RoleAuthModal({ isOpen, onClose, userProfile, onAuthenti
         text: `OTP sent to ${res.formattedPhone || phone}! Check your phone for SMS code.` 
       });
     } else {
-      // Strictly do NOT auto-advance to step 2 if Supabase OTP failed!
       setStatusMessage({ 
         type: 'error', 
         text: `❌ Supabase Auth Error: ${res.error}` 
@@ -60,7 +61,7 @@ export default function RoleAuthModal({ isOpen, onClose, userProfile, onAuthenti
     }
   };
 
-  const handleVerifyOtp = async (e) => {
+  const handleVerifyPhoneOtp = async (e) => {
     e?.preventDefault();
     if (!otpToken || otpToken.trim().length === 0) {
       setStatusMessage({ type: 'error', text: 'Please enter the 6-digit OTP code received on your phone.' });
@@ -74,7 +75,6 @@ export default function RoleAuthModal({ isOpen, onClose, userProfile, onAuthenti
     setIsLoading(false);
 
     if (!res.success) {
-      // Strictly BLOCK authentication if Supabase verifyOtp fails!
       setStatusMessage({ 
         type: 'error', 
         text: `❌ Invalid OTP Code: ${res.error || 'Verification failed. Please check the code and try again.'}` 
@@ -100,10 +100,80 @@ export default function RoleAuthModal({ isOpen, onClose, userProfile, onAuthenti
     }, 1200);
   };
 
+  const handleSendEmailOtp = async (e) => {
+    e?.preventDefault();
+    if (!email || !email.includes('@')) {
+      setStatusMessage({ type: 'error', text: 'Please enter a valid Email address.' });
+      return;
+    }
+
+    setIsLoading(true);
+    setStatusMessage(null);
+
+    const res = await sendEmailOtp(email, selectedRole);
+    setIsLoading(false);
+
+    if (res.success) {
+      setStep(2);
+      setStatusMessage({ 
+        type: 'success', 
+        text: `Email OTP / Magic Link sent to ${email}! Check your inbox.` 
+      });
+    } else {
+      setStatusMessage({ 
+        type: 'error', 
+        text: `❌ Supabase Email Auth Error: ${res.error}` 
+      });
+    }
+  };
+
+  const handleVerifyEmailOtp = async (e) => {
+    e?.preventDefault();
+    if (!otpToken || otpToken.trim().length === 0) {
+      setStatusMessage({ type: 'error', text: 'Please enter the 6-digit OTP code received in your email.' });
+      return;
+    }
+
+    setIsLoading(true);
+    setStatusMessage(null);
+
+    const res = await verifyEmailOtp(email, otpToken.trim(), selectedRole, fullName, district);
+    setIsLoading(false);
+
+    if (!res.success) {
+      setStatusMessage({ 
+        type: 'error', 
+        text: `❌ Invalid Email OTP: ${res.error || 'Verification failed.'}` 
+      });
+      return;
+    }
+
+    const profileData = {
+      id: res.user?.id,
+      name: fullName,
+      role: selectedRole.toUpperCase(),
+      location: `${district}, IN`,
+      email: email,
+      businessName: selectedRole === 'farmer' ? `${district} Farmer Co-op` : selectedRole === 'trader' ? `${district} Mandi Traders` : 'Direct Consumer',
+    };
+
+    onAuthenticate(profileData);
+    setStatusMessage({ type: 'success', text: '🎉 Email OTP Verified! Session created in Supabase Auth.' });
+    setTimeout(() => {
+      onClose();
+      setStep(1);
+      setOtpToken('');
+    }, 1200);
+  };
+
   const handleGoogleLogin = async () => {
     setIsLoading(true);
-    await signInWithGoogle();
+    setStatusMessage(null);
+    const res = await signInWithGoogle(selectedRole);
     setIsLoading(false);
+    if (res?.error) {
+      setStatusMessage({ type: 'error', text: `❌ Google OAuth Error: ${res.error}` });
+    }
   };
 
   const handleQuickDemoRole = (role, name, loc) => {
@@ -135,7 +205,7 @@ export default function RoleAuthModal({ isOpen, onClose, userProfile, onAuthenti
               </div>
               <div>
                 <h3 className="font-extrabold text-base text-white">Supabase Authentication & Role Portal</h3>
-                <p className="text-[11px] text-slate-400">Project: fpofksbeiaftslekpbcr • Phone OTP & OAuth</p>
+                <p className="text-[11px] text-slate-400">Project: fpofksbeiaftslekpbcr • Phone, Email & Google SSO</p>
               </div>
             </div>
 
@@ -184,33 +254,43 @@ export default function RoleAuthModal({ isOpen, onClose, userProfile, onAuthenti
             </div>
           </div>
 
-          {/* Auth Method Tabs (Phone OTP vs Google) */}
-          <div className="flex items-center gap-2 p-1 rounded-xl bg-slate-950 border border-white/5">
+          {/* Auth Method Tabs (Phone OTP vs Email OTP vs Google OAuth) */}
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-950 border border-white/5">
             <button
-              onClick={() => setAuthMethod('phone')}
-              className={`flex-1 py-2 rounded-lg font-bold transition-all text-xs flex items-center justify-center gap-1.5 ${
+              onClick={() => { setAuthMethod('phone'); setStep(1); setStatusMessage(null); }}
+              className={`flex-1 py-2 rounded-lg font-bold transition-all text-xs flex items-center justify-center gap-1 ${
                 authMethod === 'phone' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
               }`}
             >
               <Phone className="w-3.5 h-3.5" />
-              <span>Phone OTP Verification</span>
+              <span>Phone OTP</span>
             </button>
 
             <button
-              onClick={() => setAuthMethod('google')}
-              className={`flex-1 py-2 rounded-lg font-bold transition-all text-xs flex items-center justify-center gap-1.5 ${
+              onClick={() => { setAuthMethod('email'); setStep(1); setStatusMessage(null); }}
+              className={`flex-1 py-2 rounded-lg font-bold transition-all text-xs flex items-center justify-center gap-1 ${
+                authMethod === 'email' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>Email OTP</span>
+            </button>
+
+            <button
+              onClick={() => { setAuthMethod('google'); setStep(1); setStatusMessage(null); }}
+              className={`flex-1 py-2 rounded-lg font-bold transition-all text-xs flex items-center justify-center gap-1 ${
                 authMethod === 'google' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
               }`}
             >
               <Globe className="w-3.5 h-3.5" />
-              <span>Google OAuth</span>
+              <span>Google SSO</span>
             </button>
           </div>
 
           {/* Form Content */}
           {authMethod === 'phone' ? (
             step === 1 ? (
-              <form onSubmit={handleSendOtp} className="space-y-3">
+              <form onSubmit={handleSendPhoneOtp} className="space-y-3">
                 <div className="space-y-1">
                   <label className="text-[10px] text-slate-400">Full Name</label>
                   <input
@@ -259,7 +339,7 @@ export default function RoleAuthModal({ isOpen, onClose, userProfile, onAuthenti
                 </button>
               </form>
             ) : (
-              <form onSubmit={handleVerifyOtp} className="space-y-3">
+              <form onSubmit={handleVerifyPhoneOtp} className="space-y-3">
                 <div className="p-3 rounded-xl bg-slate-950 border border-emerald-500/30 text-emerald-400 text-[11px]">
                   Verification code sent to <strong>{phone}</strong>. Enter OTP below:
                 </div>
@@ -297,10 +377,99 @@ export default function RoleAuthModal({ isOpen, onClose, userProfile, onAuthenti
                 </div>
               </form>
             )
+          ) : authMethod === 'email' ? (
+            step === 1 ? (
+              <form onSubmit={handleSendEmailOtp} className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] text-slate-400">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Enter full name"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-slate-400">Email Address</label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="user@gmail.com"
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-slate-400">District / Mandi</label>
+                    <input
+                      type="text"
+                      required
+                      value={district}
+                      onChange={(e) => setDistrict(e.target.value)}
+                      placeholder="Nashik / Indore / Bhopal"
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-3 rounded-2xl bg-emerald-500 text-slate-950 font-extrabold text-xs hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
+                >
+                  {isLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                  <span>Send Email OTP Code</span>
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyEmailOtp} className="space-y-3">
+                <div className="p-3 rounded-xl bg-slate-950 border border-emerald-500/30 text-emerald-400 text-[11px]">
+                  Verification code sent to <strong>{email}</strong>. Enter 6-digit OTP below:
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] text-slate-400">6-Digit Email OTP Code</label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    value={otpToken}
+                    onChange={(e) => setOtpToken(e.target.value)}
+                    placeholder="123456"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-center font-bold tracking-widest text-emerald-400 text-sm focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="w-1/3 py-2.5 rounded-2xl bg-slate-800 text-slate-300 font-bold text-xs hover:text-white"
+                  >
+                    Back
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-2/3 py-2.5 rounded-2xl bg-emerald-500 text-slate-950 font-extrabold text-xs hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 shadow-lg"
+                  >
+                    {isLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
+                    <span>Verify & Login</span>
+                  </button>
+                </div>
+              </form>
+            )
           ) : (
             <div className="space-y-4 py-2">
               <p className="text-slate-300 text-[11px] text-center">
-                Sign in with your Google Account to access custom <strong>{selectedRole.toUpperCase()}</strong> features.
+                Direct OAuth 2.0 Single Sign-On with Google for <strong>{selectedRole.toUpperCase()}</strong> role.
               </p>
 
               <button
@@ -309,7 +478,7 @@ export default function RoleAuthModal({ isOpen, onClose, userProfile, onAuthenti
                 className="w-full py-3 rounded-2xl bg-white text-slate-950 font-extrabold text-xs hover:bg-slate-100 transition-all flex items-center justify-center gap-2 shadow-lg"
               >
                 <Globe className="w-4 h-4 text-blue-600" />
-                <span>Continue with Google OAuth</span>
+                <span>Continue with Google OAuth 2.0 SSO</span>
               </button>
             </div>
           )}
@@ -326,16 +495,19 @@ export default function RoleAuthModal({ isOpen, onClose, userProfile, onAuthenti
             </div>
           )}
 
-          {/* Developer Guidance Tip for Supabase Phone Auth */}
+          {/* Guidance Note */}
           <div className="p-2.5 rounded-xl bg-slate-950/80 border border-amber-500/20 text-[10px] text-amber-200/90 leading-relaxed space-y-1">
             <p className="font-bold flex items-center gap-1 text-amber-400">
-              <Lock className="w-3 h-3" /> Supabase Phone Auth Setup Note:
+              <Lock className="w-3 h-3" /> Supabase Authentication Configuration:
             </p>
             <p>
-              To receive real SMS to phone numbers, configure SMS Gateway (Twilio) in your Supabase Project Dashboard under <code>Authentication → Providers → Phone</code>.
+              • <strong>Google OAuth 2.0</strong>: Direct Single Sign-On via Google popup/consent screen (Callback: <code>/auth/callback</code>).
             </p>
             <p>
-              Or add a zero-cost test number in Supabase Console (e.g., Phone: <code>+919876543210</code>, Code: <code>123456</code>) to test real verification immediately without SMS fees.
+              • <strong>Email OTP</strong>: Sends 6-digit verification code to inbox (Requires Email provider enabled in Supabase).
+            </p>
+            <p>
+              • <strong>Phone OTP</strong>: SMS code verification (Supports Supabase test numbers e.g. <code>+919876543210</code> $\rightarrow$ <code>123456</code>).
             </p>
           </div>
 
@@ -373,3 +545,4 @@ export default function RoleAuthModal({ isOpen, onClose, userProfile, onAuthenti
     </AnimatePresence>
   );
 }
+
